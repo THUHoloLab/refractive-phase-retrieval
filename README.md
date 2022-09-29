@@ -1,4 +1,4 @@
-# Projected refractive index framework for multi-wavelength retrieval
+# Projected refractive index framework for phase retrieval
 **Authors:** [Yunhui Gao](https://github.com/Yunhui-Gao) (gyh21@mails.tsinghua.edu.cn) and Liangcai Cao (clc@tsinghua.edu.cn)
 
 ## Requirements
