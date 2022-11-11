@@ -3,6 +3,12 @@
 % ========================================================================
 % This code provides a simple demonstration of the projected refractive
 % index framework for multi-wavelength phase retrieval.
+% 
+% Reference:
+%   [1] Yunhui Gao and Liangcai Cao, "Projected refractive index framework 
+%       for multi-wavelength phase retrieval," Optics Letters 47, 
+%       5965-5968 (2022).
+% -------------------------------------------------------------------------
 % Author: Yunhui Gao (gyh21@mails.tsinghua.edu.cn)
 % =========================================================================
 %%
@@ -18,11 +24,11 @@ addpath(genpath('../src'))
 
 % load test image
 n = 256;        % image dimension
-img = mat2gray(imresize(im2double(imread('../data/simulation/Mandrill.bmp')),[n,n]));
+img = mat2gray(imresize(im2double(imread('../data/simulation/cell.bmp')),[n,n]));
 
 % sample
 amp = ones(n,n);            % amplitude
-opl = 0.3e-3*img;           % optical path length (mm)
+opl = 1.2e-3*img;           % optical path length (mm)
 
 % physical parameters
 K = 3;                                      % number of diversity measurements
@@ -45,16 +51,16 @@ AH = @(x,k) QH(CT(x),k);                % Hermitian of A
 
 % generate data
 rng(0)              % random seed, for reproducibility
-noisevar = 0.01;    % noise level
+snr_val = 20;       % signal-to-noise ratio
 y = zeros(n,n,K);
 x_gt = zeros(n+2*nullpixels,n+2*nullpixels,K);
 u_gt = zeros(n+2*nullpixels,n+2*nullpixels,K);
 for k = 1:K
     pha = 2*pi/params.wavlen(k)*opl;    % induced phase at the k-th wavelength
-    x_gt(:,:,k) = zeropad(amp.*exp(1i*pha),nullpixels);                         % ground truth value (transmission function)
-    u_gt(:,:,k) = zeropad(pha,nullpixels) + 1i*(-log(zeropad(amp,nullpixels))); % ground truth value (projected refractive index)
+    x_gt(:,:,k) = onepad(amp.*exp(1i*pha),nullpixels);                         % ground truth value (transmission function)
+    u_gt(:,:,k) = zeropad(pha,nullpixels) + 1i*(-log(onepad(amp,nullpixels))); % ground truth value (projected refractive index)
     y(:,:,k) = abs(A(x_gt(:,:,k),k)).^2;                        % intensity observation
-    y(:,:,k) = y(:,:,k) + noisevar*randn(size(y(:,:,k)));       % add Gaussian noise
+    y(:,:,k) = max(awgn(y(:,:,k),snr_val),0);                   % add noise
 end
 
 % display measurement
@@ -75,9 +81,7 @@ clear functions     % release memory (if using puma)
 % define the constraint
 constraint.type = 'a';              % 'none': no constraint, 'a': absorption constraint only, 
 constraint.absorption.max = 1.0;    % define the upper and lower bounds for the amplitude
-constraint.absorption.min = 0;
-constraint.support = zeros(n+2*nullpixels,n+2*nullpixels);        % define the support region
-constraint.support(nullpixels+1:nullpixels+n,nullpixels+1:nullpixels+n) = 1;
+constraint.absorption.min = 0.0;
 
 % region for computing the errors
 region.x1 = nullpixels+1;
@@ -97,7 +101,7 @@ gam = 2;                % step size (see the paper for details)
 
 % regularization parameter tuning
 alph = 10;
-tau1 = 2e-3;
+tau1 = 10e-3;
 tau2 = 1e-3;
 
 % options
@@ -111,11 +115,11 @@ iter = 1:n_iters;
 figure,plot(iter, opts.tau(iter));
 
 % building blocks
-myF     = @(u) F(u,y,A,K,params);
-mydF    = @(u) dF(u,y,A,AH,K,params);
-mydFk   = @(u,k) dFk(u,y,A,AH,k,params);
-myR     = @(u) CCTV(u,constraint);                     % regularization function
-myproxR = @(u,gam) prox(u,gam,n_subiters,constraint);  % proximal operator for the regularization function
+myF     = @(u) F(u,y,A,K,params);                       % data-fidelity function
+mydF    = @(u) dF(u,y,A,AH,K,params);                   % gradient of the data-fidelity function
+mydFk   = @(u,k) dFk(u,y,A,AH,k,params);                % gradient w.r.t. the k-th fidelity term
+myR     = @(u) CCTV(u,constraint);                      % regularization function
+myproxR = @(u,gam) prox(u,gam,n_subiters,constraint);   % proximal operator of the regularization function
 
 % run the algorithm
 [u_ref,J_ref,E_ref,runtimes_ref] = APG(u_init,myF,mydF,myR,myproxR,gam,n_iters,opts);
@@ -212,6 +216,9 @@ set(gca,'fontsize',14)
 % =========================================================================
 figure,plot([0;runtimes_trans],E_trans,'linewidth',1.5);
 hold on,plot([0;runtimes_ref],E_ref,'linewidth',1.5)
+xlabel('Runtime (s)')
+ylabel('Error metric')
+set(gca,'fontsize',14)
 
 %%
 % =========================================================================

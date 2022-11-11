@@ -3,6 +3,12 @@
 % ========================================================================
 % This code provides a simple demonstration of the projected refractive
 % index framework for multi-wavelength phase retrieval.
+% 
+% Reference:
+%   [1] Yunhui Gao and Liangcai Cao, "Projected refractive index framework 
+%       for multi-wavelength phase retrieval," Optics Letters 47, 
+%       5965-5968 (2022).
+% -------------------------------------------------------------------------
 % Author: Yunhui Gao (gyh21@mails.tsinghua.edu.cn)
 % =========================================================================
 %%
@@ -35,7 +41,6 @@ for k = 1:K
     y_crop(:,:,k) = imcrop(y(:,:,k),rect);
 end
 y = y_crop;
-
 N1 = size(y,1);
 N2 = size(y,2);
 
@@ -62,8 +67,6 @@ clear functions     % release memory (if using puma)
 constraint.type = 'a';              % 'none': no constraint, 'a': absorption constraint only, 
 constraint.absorption.max = 1.0;    % define the upper and lower bounds for the amplitude
 constraint.absorption.min = 0;
-constraint.support = zeros(N1+nullpixels*2,N2+nullpixels*2);        % define the support region
-constraint.support(nullpixels+1:nullpixels+N1,nullpixels+1:nullpixels+N2) = 1;
 
 % region for computing the errors
 region.x1 = nullpixels+1;

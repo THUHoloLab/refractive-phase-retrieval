@@ -8,3 +8,8 @@
 
 ## Quick Start
 Run `demo_sim.m` with default parameters.
+
+## Theories and References
+For algorithm derivation and implementation details, please refer to our paper:
+
+- [Yunhui Gao and Liangcai Cao, "Projected refractive index framework for multi-wavelength phase retrieval," Opt. Lett. 47, 5965-5968 (2022)](https://doi.org/10.1364/OL.476707).
