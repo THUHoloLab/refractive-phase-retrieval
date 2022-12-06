@@ -13,10 +13,16 @@ noisy measurements. We experimentally demonstrate high-quality quantitative phas
 Figure 1. Illustrative comparison between the transmission function $x$ and the refractive function $u$. Left column: relations to the amplitude $\alpha$ and phase $\phi$, where $W$ denotes the phase wrapping operation. Middle column: finite difference calculation, where $x'$ and $u'$ denote the transmission function and the refractive function of the adjacent pixel, respectively. Right column: enforcing the absorption constraint via projection, where $\tilde{x}$ and $\tilde{u}$ denote the projected transmission function and refractive function, respectively.
 
 <p align="center">
-<img src="docs/exp_microlens_array.gif" width="600">
+<img src="docs/resolution_target.gif" width="600">
 </p>
 
-Figure 2. Experimental characterization of a microlens array using the transmission model and the refractive model, respectively.
+Figure 2. Iterative reconstruction of a phase resolution target from noisy intensity images using the transmission model and the refractive model, respectively.
+
+<p align="center">
+<img src="docs/microlens_array.gif" width="600">
+</p>
+
+Figure 3. Experimental characterization of a microlens array using the transmission model and the refractive model, respectively.
 
 ## Requirements
 
