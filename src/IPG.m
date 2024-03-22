@@ -34,6 +34,11 @@ if isa(opts.errfunc,'function_handle')
     E_vals(1) = opts.errfunc(x);
 end
 
+if opts.display
+    figure
+    set(gcf,'unit','normalized','position',[0.25,0.3,0.5,0.4],'color','w')
+end
+
 % set timer
 timer = tic;
 
@@ -72,7 +77,20 @@ for iter = 1:n_iters
     if (J_vals(iter) - J_vals(iter+1)) / J_vals(iter) < opts.threshold
         gam = gam / opts.eta;
     end
+
+    % display results
+    if opts.display
+        subplot(1,2,1),imshow(exp(-imag(x)),[]);colorbar
+        title('Retrieved amplitude','fontsize',12)
+        subplot(1,2,2),imshow(real(x),[]);colorbar
+        title('Retrieved phase','fontsize',12)
+        drawnow;
+    end
     
+end
+
+if opts.display
+    close
 end
 
 end

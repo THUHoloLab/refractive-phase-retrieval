@@ -66,10 +66,10 @@ end
 % display measurement
 figure
 subplot(1,2,1),imshow(opl,[]);colorbar;
-title('Optical path length','interpreter','latex','fontsize',12)
+title('Optical path length','fontsize',12)
 subplot(1,2,2),imshow(y(:,:,1),[]);colorbar;
-title('Intensity measurement','interpreter','latex','fontsize',12)
-set(gcf,'unit','normalized','position',[0.2,0.3,0.6,0.4])
+title('Intensity measurement','fontsize',12)
+set(gcf,'unit','normalized','position',[0.2,0.3,0.6,0.4],'color','w')
 
 %%
 % =========================================================================
@@ -95,24 +95,31 @@ amp = ones(n+2*nullpixels,n+2*nullpixels);
 u_init = pha + 1i*(-1)*log(amp);
 
 % algorithm settings
-n_iters    = 200;      % number of iterations (main loop)
+n_iters    = 200;       % number of iterations (main loop)
 n_subiters = 1;         % number of iterations (denoising)
 gam = 2;                % step size (see the paper for details)
 
 % regularization parameter tuning
 alph = 10;
-tau1 = 10e-3;
-tau2 = 1e-3;
+tau1 = 20e-3;
+tau2 = 2e-3;
 
 % options
 opts.verbose = true;                                            % display status during the iterations
 opts.errfunc = @(u) relative_error_2d(u,u_gt(:,:,1),region);    % user-defined error metric
 % opts.errfunc = [];
 opts.tau = @(iter) reg_param(iter,n_iters,alph,tau1,tau2);
+opts.display = true;
 
 % plot the regularization parameter
-iter = 1:n_iters;
-figure,plot(iter, opts.tau(iter));
+figure
+set(gcf,'unit','normalized','position',[0.25,0.25,0.5,0.5],'color','w')
+plot(1:n_iters, opts.tau(1:n_iters),'linewidth',1);
+set(gca,'fontsize',10,'linewidth',1)
+xlabel('Iteration')
+ylabel('Value')
+title('Regularization parameter','fontsize',12)
+drawnow;
 
 % building blocks
 myF     = @(u) F(u,y,A,K,params);                       % data-fidelity function
@@ -135,16 +142,18 @@ u_ref_crop = u_ref(nullpixels+1:nullpixels+n,nullpixels+1:nullpixels+n);
 % visualize the reconstructed image
 figure
 subplot(1,2,1),imshow(exp(-imag(u_ref_crop)),[]);colorbar
-title('Retrieved amplitude','interpreter','latex','fontsize',14)
+title('Retrieved amplitude','fontsize',12)
 subplot(1,2,2),imshow(real(u_ref_crop),[]);colorbar
-title('Retrieved phase','interpreter','latex','fontsize',14)
-set(gcf,'unit','normalized','position',[0.2,0.3,0.6,0.4])
+title('Retrieved phase','fontsize',12)
+set(gcf,'unit','normalized','position',[0.25,0.3,0.5,0.4],'color','w')
 
 % visualize the convergence curves
-figure,plot(0:n_iters,E_ref,'linewidth',1.5);
+figure,plot(0:n_iters,E_ref,'linewidth',1.0);
+set(gcf,'unit','normalized','position',[0.25,0.25,0.5,0.5],'color','w')
+set(gca,'fontsize',10,'linewidth',1)
 xlabel('Iteration')
-ylabel('Error metric')
-set(gca,'fontsize',14)
+ylabel('Value')
+title('Error metric','fontsize',12)
 
 
 %%
@@ -154,12 +163,12 @@ set(gca,'fontsize',14)
 clear functions;
 
 % algorithm settings
-n_iters_trans = 100;         % number of iterations
+n_iters_trans = 100;            % number of iterations
 
 % initialization
-pha = zeros(n,n);           % initial phase
-amp = ones(n,n);            % initial amplitude
-x_trans = amp.*exp(1i*pha);   % initial object transmission function
+pha = zeros(n,n);               % initial phase
+amp = ones(n,n);                % initial amplitude
+x_trans = amp.*exp(1i*pha);     % initial object transmission function
 
 % store error metric and runtimes
 E_trans = NaN(n_iters_trans + 1,1);
@@ -167,6 +176,7 @@ E_trans(1) = relative_error_2d(zeropad(x2u(x_trans),nullpixels),u_gt(:,:,1),regi
 runtimes_trans = NaN(n_iters_trans,1);
 
 % iteration
+figure,set(gcf,'unit','normalized','position',[0.25,0.3,0.5,0.4],'color','w')
 timer = tic;
 for iter = 1:n_iters_trans
     if rem(iter,100) == 0; clear functions; end;
@@ -188,7 +198,16 @@ for iter = 1:n_iters_trans
     % calculate error metric and runtime
     E_trans(iter+1) = relative_error_2d(x2u(zeropad(x_trans,nullpixels)),u_gt(:,:,1),region);
     runtimes_trans(iter) = toc(timer);
+
+    % print status
     fprintf('iter: %4d | runtime: %5.1f s\n',iter, runtimes_trans(iter));
+
+    % display results
+    subplot(1,2,1),imshow(abs(x_trans),[]);colorbar
+    title('Retrieved amplitude','fontsize',12)
+    subplot(1,2,2),imshow(angle(x_trans),[]);colorbar
+    title('Retrieved phase','fontsize',12)
+    drawnow;
 end
 
 %%
@@ -205,10 +224,12 @@ title('Retrieved phase','interpreter','latex','fontsize',14)
 set(gcf,'unit','normalized','position',[0.2,0.3,0.6,0.4])
 
 % visualize the convergence curves
-figure,plot(0:n_iters_trans,E_trans,'linewidth',1.5);
+figure,plot(0:n_iters_trans,E_trans,'linewidth',1);
+set(gcf,'unit','normalized','position',[0.25,0.25,0.5,0.5],'color','w')
 xlabel('Iteration')
-ylabel('Error metric')
-set(gca,'fontsize',14)
+ylabel('Value')
+set(gca,'fontsize',10,'linewidth',1)
+title('Error metric','fontsize',12)
 
 %%
 % =========================================================================
@@ -305,7 +326,7 @@ end
 
 function u = zeropad(x,padsize)
 % =========================================================================
-% Zero-pad the image.
+% Zero-pad image.
 % -------------------------------------------------------------------------
 % Input:    - x        : Original image.
 %           - padsize  : Padding pixel number along each dimension.
@@ -356,4 +377,16 @@ function tau_val = reg_param(iter,n_iters,alph,tau1,tau2)
 global tau;
 tau = (tau1-tau2)*1./(1+exp(alph*(iter/n_iters - 1/2))) + tau2;
 tau_val = tau;
+end
+
+
+function u = onepad(x,padsize)
+% =========================================================================
+% Pad image with ones.
+% -------------------------------------------------------------------------
+% Input:    - x        : Original image.
+%           - padsize  : Padding pixel number along each dimension.
+% Output:   - u        : One-padded image.
+% =========================================================================
+u = padarray(x,[padsize,padsize],1);
 end

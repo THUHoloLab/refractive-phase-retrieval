@@ -27,6 +27,7 @@ load(['../data/experiment/E',num2str(group_num),'/data.mat'])
 K  = size(y,3);     % number of diversity measurements
 
 % select area of interest
+disp('Please select the area of interest ...')
 figure
 [temp,rect] = imcrop(y(:,:,1));close;
 if rem(size(temp,1),2) == 1
@@ -95,10 +96,17 @@ opts.errfunc = [];
 opts.tau = @(iter) reg_param(iter, n_iters, alph, lam1, lam2);
 opts.eta = 2;               % parameters for the incremental algorithm
 opts.threshold = 1e-4;
+opts.display = true;
 
 % plot the regularization parameter
-iter = 1:n_iters;
-figure,plot(iter, opts.tau(iter));
+figure
+set(gcf,'unit','normalized','position',[0.25,0.25,0.5,0.5],'color','w')
+plot(1:n_iters, opts.tau(1:n_iters),'linewidth',1);
+set(gca,'fontsize',10,'linewidth',1)
+xlabel('Iteration')
+ylabel('Value')
+title('Regularization parameter','fontsize',12)
+drawnow;
 
 % building blocks
 myF     = @(u) F(u,y,A,K,params);
@@ -122,10 +130,10 @@ u_ref_crop = u_ref(nullpixels+1:nullpixels+N1,nullpixels+1:nullpixels+N2);
 % visualize the reconstructed image
 figure
 subplot(1,2,1),imshow(exp(-imag(u_ref_crop)),[]);colorbar
-title('Retrieved amplitude','interpreter','latex','fontsize',14)
+title('Retrieved amplitude','fontsize',12)
 subplot(1,2,2),imshow(real(u_ref_crop),[]);colorbar
-title('Retrieved phase','interpreter','latex','fontsize',14)
-set(gcf,'unit','normalized','position',[0.2,0.3,0.6,0.4])
+title('Retrieved phase','fontsize',12)
+set(gcf,'unit','normalized','position',[0.25,0.3,0.5,0.4],'color','w')
 
 %%
 % =========================================================================
@@ -134,7 +142,7 @@ set(gcf,'unit','normalized','position',[0.2,0.3,0.6,0.4])
 clear functions;
 
 % algorithm settings
-n_iters_trans = 100;         % number of iterations
+n_iters_trans = 100;          % number of iterations
 
 % initialization
 pha = zeros(N1,N2);           % initial phase
@@ -145,6 +153,7 @@ x_trans = amp.*exp(1i*pha);   % initial object transmission function
 runtimes_trans = NaN(n_iters_trans,1);
 
 % iteration
+figure,set(gcf,'unit','normalized','position',[0.25,0.3,0.5,0.4],'color','w')
 timer = tic;
 for iter = 1:n_iters_trans
     if rem(iter,20) == 0; clear functions; end;
@@ -161,8 +170,18 @@ for iter = 1:n_iters_trans
     end
     % calculate runtime
     runtimes_trans(iter) = toc(timer);
+
+    % print status
     fprintf('iter: %4d | runtime: %5.1f s\n',iter, runtimes_trans(iter));
+
+    % display results
+    subplot(1,2,1),imshow(abs(x_trans),[]);colorbar
+    title('Retrieved amplitude','fontsize',12)
+    subplot(1,2,2),imshow(angle(x_trans),[]);colorbar
+    title('Retrieved phase','fontsize',12)
+    drawnow;
 end
+close
 
 %%
 % =========================================================================
@@ -172,10 +191,10 @@ end
 % visualize the reconstructed image
 figure
 subplot(1,2,1),imshow(abs(x_trans),[]);colorbar
-title('Retrieved amplitude','interpreter','latex','fontsize',14)
+title('Retrieved amplitude','fontsize',12)
 subplot(1,2,2),imshow(angle(x_trans),[]);colorbar
-title('Retrieved phase','interpreter','latex','fontsize',14)
-set(gcf,'unit','normalized','position',[0.2,0.3,0.6,0.4])
+title('Retrieved phase','fontsize',12)
+set(gcf,'unit','normalized','position',[0.25,0.3,0.5,0.4],'color','w')
 
 %%
 % =========================================================================
@@ -262,7 +281,7 @@ end
 
 function u = zeropad(x,padsize)
 % =========================================================================
-% Zero-pad the image.
+% Zero-pad image.
 % -------------------------------------------------------------------------
 % Input:    - x        : Original image.
 %           - padsize  : Padding pixel number along each dimension.
